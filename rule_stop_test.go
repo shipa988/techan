@@ -1,6 +1,7 @@
 package techan
 
 import (
+	"github.com/shipa988/techan/entity"
 	"testing"
 
 	"github.com/sdcoffey/big"
@@ -20,8 +21,8 @@ func TestStopLossRule(t *testing.T) {
 
 	t.Run("Returns true when losses exceed tolerance", func(t *testing.T) {
 		record := NewTradingRecord()
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.NewFromString("10"),
 			Price:  big.ONE,
 		})
@@ -36,8 +37,8 @@ func TestStopLossRule(t *testing.T) {
 	t.Run("Returns false when losses do not exceed tolerance", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.NewFromString("10"),
 			Price:  big.ONE,
 		})

@@ -1,6 +1,7 @@
 package techan
 
 import (
+	"github.com/shipa988/techan/entity"
 	"testing"
 	"time"
 
@@ -15,8 +16,8 @@ func TestPosition_NoOrders_IsNew(t *testing.T) {
 }
 
 func TestPosition_NewPosition_IsOpen(t *testing.T) {
-	order := Order{
-		Side:   BUY,
+	order := entity.Order{
+		Type:   entity.BUY,
 		Amount: big.ONE,
 		Price:  big.NewFromString("2"),
 	}
@@ -25,11 +26,12 @@ func TestPosition_NewPosition_IsOpen(t *testing.T) {
 	assert.True(t, position.IsOpen())
 	assert.False(t, position.IsNew())
 	assert.False(t, position.IsClosed())
+	assert.EqualValues(t, 2.0,position.GetAvgPrice().Float())
 }
 
 func TestNewPosition_WithBuy_IsLong(t *testing.T) {
-	order := Order{
-		Side:   BUY,
+	order := entity.Order{
+		Type:   entity.BUY,
 		Amount: big.ONE,
 		Price:  big.NewFromString("2"),
 	}
@@ -39,8 +41,8 @@ func TestNewPosition_WithBuy_IsLong(t *testing.T) {
 }
 
 func TestNewPosition_WithSell_IsShort(t *testing.T) {
-	order := Order{
-		Side:   SELL,
+	order := entity.Order{
+		Type:   entity.SELL,
 		Amount: big.ONE,
 		Price:  big.NewFromString("2"),
 	}
@@ -50,52 +52,109 @@ func TestNewPosition_WithSell_IsShort(t *testing.T) {
 }
 
 func TestPosition_Enter(t *testing.T) {
-	position := new(Position)
-
-	order := Order{
-		Side:   BUY,
+	order := entity.Order{
+		Type:   entity.BUY,
 		Amount: big.ONE,
 		Price:  big.NewFromString("2"),
 	}
-
-	position.Enter(order)
+	position := NewPosition(order)
 
 	assert.True(t, position.IsOpen())
-	assert.EqualValues(t, order.Amount, position.EntranceOrder().Amount)
-	assert.EqualValues(t, order.Price, position.EntranceOrder().Price)
-	assert.EqualValues(t, order.ExecutionTime, position.EntranceOrder().ExecutionTime)
+	assert.EqualValues(t, order.Amount, position.GetOrder(0).Amount)
+	assert.EqualValues(t, order.Price, position.GetOrder(0).Price)
+	assert.EqualValues(t, order.Created, position.GetOrder(0).Created)
 }
 
-func TestPosition_Close(t *testing.T) {
-	position := new(Position)
+func TestPosition_AvgPrice(t *testing.T) {
+	order := entity.Order{
+		Type:   entity.BUY,
+		Amount: big.ONE,
+		Price:  big.NewFromString("2"),
+	}
+	position := NewPosition(order)
+	assert.EqualValues(t, 2.0,position.GetAvgPrice().Float())
+	position.AddOrder(order)
+	assert.EqualValues(t, 2.0,position.GetAvgPrice().Float())
+	order3 := entity.Order{
+		Type:   entity.BUY,
+		Amount: big.NewFromString("2"),
+		Price:  big.NewFromString("4"),
+	}
+	position.AddOrder(order3)
+	assert.EqualValues(t, 3.0,position.GetAvgPrice().Float())
 
-	entranceOrder := Order{
-		Side:   BUY,
+	assert.True(t, position.IsOpen())
+	assert.EqualValues(t, 4.0, position.GetAmount().Float())
+
+	orderRevers := entity.Order{
+		Type:   entity.SELL,
+		Amount: big.NewFromString("4"),
+		Price:  big.NewFromString("3"),
+	}
+	position.AddOrder(orderRevers)
+	assert.True(t, position.IsClosed())
+	assert.EqualValues(t, 0.0,position.GetProfit().Float())
+}
+
+func TestPosition_AvgPriceSell(t *testing.T) {
+	order := entity.Order{
+		Type:   entity.SELL,
+		Amount: big.ONE,
+		Price:  big.NewFromString("2"),
+	}
+	position := NewPosition(order)
+	assert.EqualValues(t, 2.0,position.GetAvgPrice().Float())
+	position.AddOrder(order)
+	assert.EqualValues(t, 2.0,position.GetAvgPrice().Float())
+	order3 := entity.Order{
+		Type:   entity.SELL,
+		Amount: big.NewFromString("2"),
+		Price:  big.NewFromString("4"),
+	}
+	position.AddOrder(order3)
+	assert.EqualValues(t, 3.0,position.GetAvgPrice().Float())
+
+	assert.True(t, position.IsOpen())
+	assert.EqualValues(t, 4.0, position.GetAmount().Float())
+	orderRevers := entity.Order{
+		Type:   entity.BUY,
+		Amount: big.NewFromString("4"),
+		Price:  big.NewFromString("3"),
+	}
+	position.AddOrder(orderRevers)
+	assert.True(t, position.IsClosed())
+	assert.EqualValues(t, 0.0,position.GetProfit().Float())
+}
+
+
+func TestPosition_Close(t *testing.T) {
+	entranceOrder := entity.Order{
+		Type:   entity.BUY,
 		Amount: big.ONE,
 		Price:  big.NewFromString("2"),
 	}
 
-	position.Enter(entranceOrder)
+	position := NewPosition(entranceOrder)
 
 	assert.True(t, position.IsOpen())
-	assert.EqualValues(t, entranceOrder.Amount, position.EntranceOrder().Amount)
-	assert.EqualValues(t, entranceOrder.Price, position.EntranceOrder().Price)
-	assert.EqualValues(t, entranceOrder.ExecutionTime, position.EntranceOrder().ExecutionTime)
+	assert.EqualValues(t, entranceOrder.Amount, position.GetOrder(0).Amount)
+	assert.EqualValues(t, entranceOrder.Price, position.GetOrder(0).Price)
+	assert.EqualValues(t, entranceOrder.Created, position.GetOrder(0).Created)
 
-	exitOrder := Order{
-		Side:          SELL,
-		Amount:        big.ONE,
-		Price:         big.NewFromString("4"),
-		ExecutionTime: time.Now(),
+	exitOrder := entity.Order{
+		Type:    entity.SELL,
+		Amount:  big.ONE,
+		Price:   big.NewFromString("4"),
+		Created: time.Now(),
 	}
 
-	position.Exit(exitOrder)
+	position.AddOrder(exitOrder)
 
 	assert.True(t, position.IsClosed())
 
-	assert.EqualValues(t, exitOrder.Amount, position.ExitOrder().Amount)
-	assert.EqualValues(t, exitOrder.Price, position.ExitOrder().Price)
-	assert.EqualValues(t, exitOrder.ExecutionTime, position.ExitOrder().ExecutionTime)
+	assert.EqualValues(t, exitOrder.Amount, position.GetOrder(1).Amount)
+	assert.EqualValues(t, exitOrder.Price, position.GetOrder(1).Price)
+	assert.EqualValues(t, exitOrder.Created, position.GetOrder(1).Created)
 }
 
 func TestPosition_CostBasis(t *testing.T) {
@@ -105,15 +164,14 @@ func TestPosition_CostBasis(t *testing.T) {
 	})
 
 	t.Run("When entracne order not nil, returns cost basis", func(t *testing.T) {
-		p := new(Position)
 
-		order := Order{
-			Side:   BUY,
+		order := entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.NewFromString("2"),
 		}
 
-		p.Enter(order)
+		p := NewPosition(order)
 
 		assert.EqualValues(t, "2.00", p.CostBasis().FormattedString(2))
 	})
@@ -121,38 +179,34 @@ func TestPosition_CostBasis(t *testing.T) {
 
 func TestPosition_ExitValue(t *testing.T) {
 	t.Run("when not closed, returns 0", func(t *testing.T) {
-		p := new(Position)
-
-		order := Order{
-			Side:   BUY,
+		order := entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.NewFromString("2"),
 		}
 
-		p.Enter(order)
+		p := NewPosition(order)
 
-		assert.EqualValues(t, "0.00", p.ExitValue().FormattedString(2))
+		assert.EqualValues(t, "0.00", p.GetProfit().FormattedString(2))
 	})
-
-	t.Run("when closed, returns exit value", func(t *testing.T) {
-		p := new(Position)
-
-		order := Order{
-			Side:   BUY,
-			Amount: big.ONE,
-			Price:  big.NewFromString("2"),
-		}
-
-		p.Enter(order)
-
-		order = Order{
-			Side:   SELL,
-			Amount: big.ONE,
-			Price:  big.NewFromString("12"),
-		}
-
-		p.Exit(order)
-
-		assert.EqualValues(t, "12.00", p.ExitValue().FormattedString(2))
-	})
+	//
+	//t.Run("when closed, returns exit value", func(t *testing.T) {
+	//
+	//	order := entity.Order{
+	//		Type:   entity.BUY,
+	//		Amount: big.ONE,
+	//		Price:  big.NewFromString("2"),
+	//	}
+	//
+	//	p := NewPosition(order)
+	//	order = entity.Order{
+	//		Type:   entity.SELL,
+	//		Amount: big.ONE,
+	//		Price:  big.NewFromString("12"),
+	//	}
+	//
+	//	p.AddOrder(order)
+	//
+	//	assert.EqualValues(t, "12.00", p.GetProfit().FormattedString(2))
+	//})
 }

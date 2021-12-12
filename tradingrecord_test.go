@@ -1,6 +1,8 @@
 package techan
 
 import (
+	"fmt"
+	"github.com/shipa988/techan/entity"
 	"testing"
 	"time"
 
@@ -15,28 +17,63 @@ func TestNewTradingRecord(t *testing.T) {
 	assert.True(t, record.CurrentPosition().IsNew())
 }
 
-func TestTradingRecord_CurrentTrade(t *testing.T) {
+func TestTradingRecord_BUYBUY(t *testing.T) {
 	record := NewTradingRecord()
 
 	yesterday := time.Now().Add(-time.Hour * 24)
-	record.Operate(Order{
-		Side:          BUY,
-		Amount:        big.ONE,
-		Price:         big.NewFromString("2"),
-		ExecutionTime: yesterday,
+	record.Operate(entity.Order{
+		Type:    entity.BUY,
+		Amount:  big.ONE,
+		Price:   big.NewFromString("2"),
+		Created: yesterday,
 	})
 
 	assert.EqualValues(t, "1", record.CurrentPosition().EntranceOrder().Amount.String())
 	assert.EqualValues(t, "2", record.CurrentPosition().EntranceOrder().Price.String())
 	assert.EqualValues(t, yesterday.UnixNano(),
-		record.CurrentPosition().EntranceOrder().ExecutionTime.UnixNano())
+		record.CurrentPosition().EntranceOrder().Created.UnixNano())
 
 	now := time.Now()
-	record.Operate(Order{
-		Side:          SELL,
-		Amount:        big.NewFromString("3"),
-		Price:         big.NewFromString("4"),
-		ExecutionTime: now,
+	record.Operate(entity.Order{
+		Type:    entity.BUY,
+		Amount:  big.NewFromString("1"),
+		Price:   big.NewFromString("2"),
+		Created: yesterday,
+	})
+
+	assert.True(t, record.CurrentPosition().IsNew())
+
+	lastTrade := record.LastTrade()
+	tpa := TotalProfitAnalysis{}
+	fmt.Println(tpa.Analyze(record))
+	assert.EqualValues(t, "3", lastTrade.ExitOrder().Amount.String())
+	assert.EqualValues(t, "4", lastTrade.ExitOrder().Price.String())
+	assert.EqualValues(t, now.UnixNano(),
+		lastTrade.ExitOrder().Created.UnixNano())
+}
+
+func TestTradingRecord_CurrentTrade(t *testing.T) {
+	record := NewTradingRecord()
+
+	yesterday := time.Now().Add(-time.Hour * 24)
+	record.Operate(entity.Order{
+		Type:    entity.BUY,
+		Amount:  big.ONE,
+		Price:   big.NewFromString("2"),
+		Created: yesterday,
+	})
+
+	assert.EqualValues(t, "1", record.CurrentPosition().EntranceOrder().Amount.String())
+	assert.EqualValues(t, "2", record.CurrentPosition().EntranceOrder().Price.String())
+	assert.EqualValues(t, yesterday.UnixNano(),
+		record.CurrentPosition().EntranceOrder().Created.UnixNano())
+
+	now := time.Now()
+	record.Operate(entity.Order{
+		Type:    entity.SELL,
+		Amount:  big.NewFromString("3"),
+		Price:   big.NewFromString("4"),
+		Created: now,
 	})
 	assert.True(t, record.CurrentPosition().IsNew())
 
@@ -45,7 +82,7 @@ func TestTradingRecord_CurrentTrade(t *testing.T) {
 	assert.EqualValues(t, "3", lastTrade.ExitOrder().Amount.String())
 	assert.EqualValues(t, "4", lastTrade.ExitOrder().Price.String())
 	assert.EqualValues(t, now.UnixNano(),
-		lastTrade.ExitOrder().ExecutionTime.UnixNano())
+		lastTrade.ExitOrder().Created.UnixNano())
 }
 
 func TestTradingRecord_Enter(t *testing.T) {
@@ -54,25 +91,25 @@ func TestTradingRecord_Enter(t *testing.T) {
 
 		now := time.Now()
 
-		record.Operate(Order{
-			Side:          BUY,
-			Amount:        big.ONE,
-			Price:         big.NewFromString("2"),
-			ExecutionTime: now,
+		record.Operate(entity.Order{
+			Type:    entity.BUY,
+			Amount:  big.ONE,
+			Price:   big.NewFromString("2"),
+			Created: now,
 		})
 
-		record.Operate(Order{
-			Side:          SELL,
-			Amount:        big.NewFromString("2"),
-			Price:         big.NewFromString("2"),
-			ExecutionTime: now.Add(time.Minute),
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("2"),
+			Price:   big.NewFromString("2"),
+			Created: now.Add(time.Minute),
 		})
 
-		record.Operate(Order{
-			Side:          BUY,
-			Amount:        big.NewFromString("2"),
-			Price:         big.NewFromString("2"),
-			ExecutionTime: now.Add(-time.Minute),
+		record.Operate(entity.Order{
+			Type:    entity.BUY,
+			Amount:  big.NewFromString("2"),
+			Price:   big.NewFromString("2"),
+			Created: now.Add(-time.Minute),
 		})
 
 		assert.True(t, record.CurrentPosition().IsNew())
@@ -85,19 +122,19 @@ func TestTradingRecord_Exit(t *testing.T) {
 		record := NewTradingRecord()
 
 		now := time.Now()
-		record.Operate(Order{
+		record.Operate(entity.Order{
 
-			Side:          BUY,
-			Amount:        big.ONE,
-			Price:         big.NewFromString("2"),
-			ExecutionTime: now,
+			Type:    entity.BUY,
+			Amount:  big.ONE,
+			Price:   big.NewFromString("2"),
+			Created: now,
 		})
 
-		record.Operate(Order{
-			Side:          SELL,
-			Amount:        big.NewFromString("2"),
-			Price:         big.NewFromString("2"),
-			ExecutionTime: now.Add(-time.Minute),
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("2"),
+			Price:   big.NewFromString("2"),
+			Created: now.Add(-time.Minute),
 		})
 
 		assert.True(t, record.CurrentPosition().IsOpen())

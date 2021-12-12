@@ -1,6 +1,7 @@
 package techan
 
 import (
+	"github.com/shipa988/techan/entity"
 	"testing"
 
 	"github.com/sdcoffey/big"
@@ -18,8 +19,8 @@ func TestPositionNewRule(t *testing.T) {
 	t.Run("returns false when position open", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.ONE,
 		})
@@ -42,8 +43,8 @@ func TestPositionOpenRule(t *testing.T) {
 	t.Run("returns true when position open", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.ONE,
 		})

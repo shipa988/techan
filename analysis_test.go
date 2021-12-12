@@ -1,6 +1,7 @@
 package techan
 
 import (
+	"github.com/shipa988/techan/entity"
 	"testing"
 	"time"
 
@@ -21,34 +22,34 @@ func TestTotalProfitAnalysis(t *testing.T) {
 		record := NewTradingRecord()
 		tpa := TotalProfitAnalysis{}
 
-		orders := []Order{
+		orders := []entity.Order{
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(2),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(2),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(2),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(2),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(2),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 		}
 
@@ -56,25 +57,55 @@ func TestTotalProfitAnalysis(t *testing.T) {
 			record.Operate(order)
 		}
 
-		assert.EqualValues(t, 2.0, tpa.Analyze(record))
+		assert.EqualValues(t, 1.0, tpa.Analyze(record))
 
-		record.Operate(Order{
-			Side:          BUY,
-			Amount:        big.ONE,
-			Price:         big.ONE,
-			Security:      example,
-			ExecutionTime: time.Now(),
+		record.Operate(entity.Order{
+			Type:    entity.BUY,
+			Amount:  big.ONE,
+			Price:   big.ONE,
+			Pair:    example,
+			Created: time.Now(),
 		})
 
-		record.Operate(Order{
-			Side:          SELL,
-			Amount:        big.NewFromString("0.5"),
-			Price:         big.ONE,
-			Security:      example,
-			ExecutionTime: time.Now(),
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("0.5"),
+			Price:   big.ONE,
+			Pair:    example,
+			Created: time.Now(),
+		})
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("0.5"),
+			Price:   big.ONE,
+			Pair:    example,
+			Created: time.Now(),
+		})
+		assert.EqualValues(t, 1, tpa.Analyze(record))
+
+		record.Operate(entity.Order{
+			Type:    entity.BUY,
+			Amount:  big.ONE,
+			Price:   big.NewFromString("2"),
+			Pair:    example,
+			Created: time.Now(),
 		})
 
-		assert.EqualValues(t, 1.5, tpa.Analyze(record))
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("0.5"),
+			Price:   big.ONE,
+			Pair:    example,
+			Created: time.Now(),
+		})
+		record.Operate(entity.Order{
+			Type:    entity.SELL,
+			Amount:  big.NewFromString("0.5"),
+			Price:   big.ONE,
+			Pair:    example,
+			Created: time.Now(),
+		})
+		assert.EqualValues(t, 0, tpa.Analyze(record))
 	})
 }
 
@@ -92,20 +123,20 @@ func TestPercentGainAnalysis(t *testing.T) {
 
 		pga := PercentGainAnalysis{}
 
-		orders := []Order{
+		orders := []entity.Order{
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(2),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(2),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 		}
 
@@ -122,20 +153,20 @@ func TestPercentGainAnalysis(t *testing.T) {
 
 		pga := PercentGainAnalysis{}
 
-		orders := []Order{
+		orders := []entity.Order{
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(2),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(2),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 		}
 
@@ -152,34 +183,34 @@ func TestPercentGainAnalysis(t *testing.T) {
 
 		pga := PercentGainAnalysis{}
 
-		orders := []Order{
+		orders := []entity.Order{
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(2),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(2),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1.25),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1.25),
+				Pair:    example,
+				Created: time.Now(),
 			},
 		}
 
@@ -217,34 +248,34 @@ func TestLogTradesAnalysis(t *testing.T) {
 		now.AddDate(0, 0, 3),
 	}
 
-	orders := []Order{
+	orders := []entity.Order{
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(2),
-			Security:      example,
-			ExecutionTime: dates[0],
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(2),
+			Pair:    example,
+			Created: dates[0],
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: dates[1],
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: dates[1],
 		},
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: dates[2],
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: dates[2],
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1.25),
-			Security:      example,
-			ExecutionTime: dates[3],
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1.25),
+			Pair:    example,
+			Created: dates[3],
 		},
 	}
 
@@ -287,34 +318,34 @@ func TestPeriodProfitAnalysis(t *testing.T) {
 
 	now := time.Now().Add(-time.Minute * 5)
 
-	orders := []Order{
+	orders := []entity.Order{
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: now,
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: now,
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: now.Add(time.Minute),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: now.Add(time.Minute),
 		},
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: now.Add(time.Minute * 2),
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: now.Add(time.Minute * 2),
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(3),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: now.Add(time.Minute * 3),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(3),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: now.Add(time.Minute * 3),
 		},
 	}
 
@@ -332,34 +363,34 @@ func TestPeriodProfitAnalysis(t *testing.T) {
 func TestProfitableTradesAnalysis(t *testing.T) {
 	record := NewTradingRecord()
 
-	orders := []Order{
+	orders := []entity.Order{
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 	}
 
@@ -375,34 +406,34 @@ func TestProfitableTradesAnalysis(t *testing.T) {
 func TestAverageProfitAnalysis(t *testing.T) {
 	record := NewTradingRecord()
 
-	orders := []Order{
+	orders := []entity.Order{
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(1),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(1),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          BUY,
-			Amount:        big.NewDecimal(2),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.BUY,
+			Amount:  big.NewDecimal(2),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 		{
-			Side:          SELL,
-			Amount:        big.NewDecimal(5),
-			Price:         big.NewDecimal(1),
-			Security:      example,
-			ExecutionTime: time.Now(),
+			Type:    entity.SELL,
+			Amount:  big.NewDecimal(5),
+			Price:   big.NewDecimal(1),
+			Pair:    example,
+			Created: time.Now(),
 		},
 	}
 
@@ -429,34 +460,34 @@ func TestBuyAndHoldAnalysis(t *testing.T) {
 	})
 
 	t.Run("> 0 trades", func(t *testing.T) {
-		orders := []Order{
+		orders := []entity.Order{
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(1),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(1),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(2),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(2),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          BUY,
-				Amount:        big.NewDecimal(3),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.BUY,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(2),
+				Pair:    example,
+				Created: time.Now(),
 			},
 			{
-				Side:          SELL,
-				Amount:        big.NewDecimal(6),
-				Price:         big.NewDecimal(1),
-				Security:      example,
-				ExecutionTime: time.Now(),
+				Type:    entity.SELL,
+				Amount:  big.NewDecimal(1),
+				Price:   big.NewDecimal(6),
+				Pair:    example,
+				Created: time.Now(),
 			},
 		}
 
@@ -469,6 +500,6 @@ func TestBuyAndHoldAnalysis(t *testing.T) {
 			StartingMoney: 1,
 		}
 
-		assert.EqualValues(t, 5, buyAndHoldAnalysis.Analyze(record))
+		assert.EqualValues(t, 5.0, buyAndHoldAnalysis.Analyze(record))
 	})
 }

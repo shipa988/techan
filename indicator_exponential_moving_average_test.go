@@ -1,7 +1,9 @@
 package techan
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -54,7 +56,9 @@ func BenchmarkExponentialMovingAverage_Cached(b *testing.B) {
 	size := 10000
 	ts := randomTimeSeries(size)
 	ema := NewEMAIndicator(NewClosePriceIndicator(ts), 10)
-
+	ts.AddCandle(NewCandle(NewTimePeriod(time.Now(),time.Second)))
+	v:=ema.Calculate(size)
+	fmt.Println(v)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ema.Calculate(size - 1)

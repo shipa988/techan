@@ -1,6 +1,7 @@
 package techan
 
 import (
+	"github.com/shipa988/techan/entity"
 	"testing"
 
 	"github.com/sdcoffey/big"
@@ -29,8 +30,8 @@ func TestRuleStrategy_ShouldEnter(t *testing.T) {
 	t.Run("Returns false if a position is open", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.ONE,
 		})
@@ -72,8 +73,8 @@ func TestRuleStrategy_ShouldExit(t *testing.T) {
 	t.Run("Returns false if index < unstablePeriod", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.ONE,
 		})
@@ -102,8 +103,8 @@ func TestRuleStrategy_ShouldExit(t *testing.T) {
 	t.Run("Returns true when position is open", func(t *testing.T) {
 		record := NewTradingRecord()
 
-		record.Operate(Order{
-			Side:   BUY,
+		record.Operate(entity.Order{
+			Type:   entity.BUY,
 			Amount: big.ONE,
 			Price:  big.ONE,
 		})
