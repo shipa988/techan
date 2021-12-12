@@ -8,7 +8,7 @@ import (
 
 // Position is list of orders  before position closing and totalAmount amount==0
 type Position struct {
-	sync.Mutex
+	sync.RWMutex
 	orders    []entity.Order
 	nowType   entity.OrderSide
 	nowAmount big.Decimal
@@ -74,8 +74,8 @@ func (p *Position) AddOrder(order entity.Order) bool {
 }
 
 func (p *Position) GetAvgPrice() big.Decimal {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	if !p.isClosed {
 		return p.nowPrice
 	}
@@ -83,8 +83,8 @@ func (p *Position) GetAvgPrice() big.Decimal {
 }
 
 func (p *Position) GetAmount() big.Decimal {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.nowAmount
 }
 
@@ -95,22 +95,22 @@ func (p *Position) GetAmount() big.Decimal {
 
 // IsLong returns true if the entrance order is a buy order
 func (p *Position) IsLong() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.nowType == entity.BUY
 }
 
 // IsShort returns true if the entrance order is a sell order
 func (p *Position) IsShort() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.nowType == entity.SELL
 }
 
 // IsOpen returns true if there is an entrance order but no exit order
 func (p *Position) IsOpen() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.isOpen()
 }
 
@@ -120,14 +120,14 @@ func (p *Position) isOpen() bool {
 
 // IsNew returns true if there is neither an entrance or exit order
 func (p *Position) IsNew() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return len(p.orders) == 0
 }
 
 func (p *Position) GetOrder(id int) *entity.Order {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	if len(p.orders)-1 >= id {
 		return &p.orders[id]
 	}
@@ -136,8 +136,8 @@ func (p *Position) GetOrder(id int) *entity.Order {
 
 // EntranceOrder returns the entrance order of this position
 func (p *Position) EntranceOrder() *entity.Order {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	if len(p.orders) > 0 {
 		return &p.orders[0]
 	}
@@ -145,15 +145,15 @@ func (p *Position) EntranceOrder() *entity.Order {
 }
 
 func (p *Position) GetOrders() []entity.Order {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.orders
 }
 
 // ExitOrder returns the exit order of this position
 func (p *Position) ExitOrder() *entity.Order {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	if len(p.orders) > 0 {
 		return &p.orders[len(p.orders)-1]
 	}
@@ -162,13 +162,15 @@ func (p *Position) ExitOrder() *entity.Order {
 
 // IsClosed returns true of there are both entrance and exit orders
 func (p *Position) IsClosed() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	return p.isClosed
 }
 
 // CostBasis returns the price to enter this order
 func (p *Position) CostBasis() big.Decimal {
+	p.RLock()
+	defer p.RUnlock()
 	if len(p.orders) > 0 {
 		return p.orders[0].Amount.Mul(p.orders[0].Price)
 	}
@@ -177,7 +179,9 @@ func (p *Position) CostBasis() big.Decimal {
 
 // GetProfit returns the value accrued by closing the position
 func (p *Position) GetProfit() big.Decimal {
-	if p.IsClosed() {
+	p.RLock()
+	defer p.RUnlock()
+	if p.isClosed {
 		return p.nowProfit
 	}
 
